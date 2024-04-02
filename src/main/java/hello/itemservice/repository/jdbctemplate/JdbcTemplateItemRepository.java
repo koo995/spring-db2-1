@@ -12,8 +12,7 @@ import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.util.StringUtils;
 
 import javax.sql.DataSource;
@@ -22,35 +21,34 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * NamedParameterJdbcTemplate
+ * SimpleJdbcInsert
  */
 @Slf4j
 public class JdbcTemplateItemRepository implements ItemRepository {
 
     private final NamedParameterJdbcTemplate template;
+    private final SimpleJdbcInsert jdbcInsert;
 
     /**
      * JdbcTemplate 은 생성자에서 dataSource 을 필요로 한다.
      */
     public JdbcTemplateItemRepository(DataSource dataSource) {
         this.template = new NamedParameterJdbcTemplate(dataSource);
+        this.jdbcInsert = new SimpleJdbcInsert(dataSource)
+                .withTableName("item")
+                .usingGeneratedKeyColumns("id")
+                .usingColumns("item_name", "price", "quantity"); // 사실 이 부분은 생략가능
     }
 
+
+    /**
+     * insert 에서만 도움되는 기능이다.
+     */
     @Override
     public Item save(Item item) {
-        String sql = "insert into item(item_name, price, quantity) " +
-                "values (:itemName, :price, :quantity)";
-
-        /**
-         * 넘어온 item 객체에 있는 정보를 가지고 파라미터를 만들어준다.
-         */
-        SqlParameterSource param = new BeanPropertySqlParameterSource(item);
-
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        template.update(sql, param, keyHolder);
-
-        long key = keyHolder.getKey().longValue();
-        item.setId(key);
+        BeanPropertySqlParameterSource param = new BeanPropertySqlParameterSource(item);
+        Number key = jdbcInsert.executeAndReturnKey(param);
+        item.setId(key.longValue());
         return item;
     }
 
