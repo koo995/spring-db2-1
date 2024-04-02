@@ -9,6 +9,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 
 
+/**
+ * service 와 repository 는 수동으로 등록
+ */
 @Import(MemoryConfig.class)
 @SpringBootApplication(scanBasePackages = "hello.itemservice.web")
 public class ItemServiceApplication {
@@ -17,6 +20,9 @@ public class ItemServiceApplication {
 		SpringApplication.run(ItemServiceApplication.class, args);
 	}
 
+	/**
+	 * @Profile("local") 테스트에서는 사용하지 않는다.
+	 */
 	@Bean
 	@Profile("local")
 	public TestDataInit testDataInit(ItemRepository itemRepository) {
