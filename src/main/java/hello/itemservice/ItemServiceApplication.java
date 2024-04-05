@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Profile;
 /**
  * service 와 repository 는 수동으로 등록
  */
-@Import(JdbcTemplateConfig.class)
+@Import(MyBatisConfig.class)
 @SpringBootApplication(scanBasePackages = "hello.itemservice.web")
 public class ItemServiceApplication {
 
